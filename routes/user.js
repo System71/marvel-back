@@ -9,7 +9,7 @@ const encBase64 = require("crypto-js/enc-base64");
 const uid2 = require("uid2");
 const convertToBase64 = require("../utils/converToBase64");
 
-// ===== SIGNUP =====
+// ========== SIGNUP ==========
 router.post("/user/signup", fileUpload(), async (req, res) => {
   try {
     const password = req.body.password;
@@ -66,6 +66,38 @@ router.post("/user/signup", fileUpload(), async (req, res) => {
       account: {
         username: newUser.account.username,
         // Voir pour confirmé l'avatar
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ========== LOGIN ==========
+
+router.post("/user/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const userToSearch = await User.findOne({ email: email });
+
+    if (!userToSearch) {
+      return res.status(401).json({ message: "Email or password invalid" });
+    }
+
+    const salt = userToSearch.salt;
+    const hash = SHA256(password + salt).toString(encBase64);
+    const userHash = userToSearch.hash;
+
+    if (hash !== userHash) {
+      return res.status(401).json({ message: "Email or password invalid" });
+    }
+
+    res.status(200).json({
+      _id: userToSearch.id,
+      token: userToSearch.token,
+      acount: {
+        username: userToSearch.account.username,
       },
     });
   } catch (error) {
