@@ -6,6 +6,10 @@ const User = mongoose.model("User", {
     username: String,
     avatar: Object,
   },
+  favorites: {
+    characters: Array,
+    comics: Array,
+  },
   token: String,
   hash: String,
   salt: String,
