@@ -109,15 +109,109 @@ router.post("/user/login", async (req, res) => {
   }
 });
 
-// ========== ADD CHARACTERS TO FAVOURITES ==========
+// ========== ADD/REMOVE CHARACTERS TO FAVOURITES ==========
 
-router.get("/user/favorites/characters/add", async (req, res) => {
+router.post("/user/favorites/characters/add", async (req, res) => {
   try {
-    console.log("dans le try");
+    const userToSearch = await User.findOne({ token: req.body.token });
+
+    const charactersTab = userToSearch.favorites.characters;
+
+    const indexExistant = charactersTab.findIndex(
+      (character) => character.id == req.body.id
+    );
+
+    if (indexExistant === -1) {
+      charactersTab.push({
+        id: req.body.id,
+        name: req.body.name,
+        description: req.body.description,
+        img: req.body.img,
+      });
+
+      res.status(200).json({
+        message: "Favoris ajouté!",
+        favoriteCharacters: charactersTab,
+      });
+    } else {
+      charactersTab.splice(indexExistant, 1);
+      res.status(200).json({
+        message: "Favoris supprimé!",
+        favoriteCharacters: charactersTab,
+      });
+    }
+
+    await userToSearch.save();
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ========== LIST OF FAVORITE CHARACTERS ==========
+
+router.get("/user/favorites/characters", async (req, res) => {
+  try {
     const userToSearch = await User.findOne({ token: req.query.token });
 
-    userToSearch.favorites.characters.push(req.query.id);
-    res.status(200).json({ message: "Favoris ajouté!" });
+    const charactersTab = userToSearch.favorites.characters;
+
+    res.status(200).json({ favoriteCharacters: charactersTab });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ========== ADD/REMOVE COMICS TO FAVOURITES ==========
+
+router.post("/user/favorites/comics/add", async (req, res) => {
+  try {
+    console.log("token=", req.body.token);
+    const userToSearch = await User.findOne({ token: req.body.token });
+
+    const comicsTab = userToSearch.favorites.comics;
+
+    const indexExistant = comicsTab.findIndex(
+      (comic) => comic.id == req.body.id
+    );
+
+    if (indexExistant === -1) {
+      comicsTab.push({
+        id: req.body.id,
+        title: req.body.title,
+        description: req.body.description,
+        img: req.body.img,
+      });
+
+      res.status(200).json({
+        message: "Favoris ajouté!",
+        favoriteComics: comicsTab,
+      });
+    } else {
+      comicsTab.splice(indexExistant, 1);
+      res.status(200).json({
+        message: "Favoris supprimé!",
+        favoriteComics: comicsTab,
+      });
+    }
+
+    await userToSearch.save();
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ========== LIST OF FAVORITE COMICS ==========
+
+router.get("/user/favorites/comics", async (req, res) => {
+  try {
+    const userToSearch = await User.findOne({ token: req.query.token });
+
+    const comicsTab = userToSearch.favorites.comics;
+
+    res.status(200).json({ favoriteComics: comicsTab });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: error.message });
